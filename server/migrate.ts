@@ -1,5 +1,5 @@
 import { createHash } from 'node:crypto';
-import { DB, q, tx } from './db';
+import { DB, q, tx, toPgSchema } from './db';
 import { iso } from './clock';
 import { MIGRATIONS } from './migrations';
 
@@ -27,7 +27,8 @@ export function validate(list: Migration[]) {
     last = m.version;
   }
 }
-const sqlFor = (m: Migration, db: DB) => (typeof m.sql === 'string' ? m.sql : m.sql?.[db.kind]);
+// A single SQL string is written in SQLite style; on PostgreSQL it gets the same conversion as the baseline schema (AUTOINCREMENT -> BIGSERIAL, REAL, BLOB). The checksum is taken from the original text, so it is unchanged.
+export const sqlFor = (m: Migration, db: Pick<DB, 'kind'>) => (typeof m.sql === 'string' ? (db.kind === 'pg' ? toPgSchema(m.sql) : m.sql) : m.sql?.[db.kind]);
 
 /** Applies pending migrations (or, with `dryRun`, only reports them). Safe to call on every start. */
 export async function runMigrations(db: DB, list: Migration[] = MIGRATIONS, o: { dryRun?: boolean } = {}): Promise<MigrationReport> {
