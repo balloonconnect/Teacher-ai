@@ -26,6 +26,9 @@ COPY server ./server
 COPY shared ./shared
 COPY scripts ./scripts
 COPY tsconfig.json tsconfig.server.json ./
+# Uploaded textbooks and student files live here; mount a volume at /data so they survive restarts.
+RUN mkdir -p /data/textbooks /data/uploads && chown -R node:node /data
+ENV TEXTBOOK_DIR=/data/textbooks UPLOAD_DIR=/data/uploads
 USER node
 EXPOSE 3001
 HEALTHCHECK --interval=30s --timeout=5s --start-period=40s CMD node -e "fetch('http://127.0.0.1:'+process.env.PORT+'/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"

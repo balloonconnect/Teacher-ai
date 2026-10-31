@@ -10,3 +10,5 @@ uploads/
 coverage/
 dist-preview-bak/
 ta-left.json
+.env.prod
+backups/
