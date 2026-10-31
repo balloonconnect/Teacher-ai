@@ -1,3 +1,4 @@
+/* global document, getSelection, getComputedStyle */
 // Real-browser Tamil check. Usage: BASE=http://localhost:3057 node scripts/tamil-browser-check.mjs [outDir]
 // For each sample it records: the source string, the DOM text, whether the copied (selected) text equals the source, the computed font family,
 // the font file the engine actually used for the glyphs (via DevTools CSS.getPlatformFontsForNode), the woff2 network requests and console errors.

@@ -88,7 +88,7 @@ import { StructuredLesson } from '../components/StructuredLesson';
 const TABS: [string, string][] = [['explain', 'Explanation'], ['map', 'Mind Map'], ['examples', 'Examples'], ['practice', 'Practice questions'], ['revision', 'Quick revision'], ['book', 'Textbook'], ['chapter', 'Book view']];
 export function Lesson() {
   const { user: me } = useAuth(); const isStu = me?.role === 'student';
-  const { id } = useParams(); const nav = useNavigate(); const [sp, setSp] = useSearchParams(); const rawTab = sp.get('tab') ?? 'explain'; const tab = TABS.some(t => t[0] === rawTab) ? rawTab : 'explain';
+  const { id } = useParams(); const nav = useNavigate(); const [sp, setSp] = useSearchParams(); const rawTab = sp.get('tab') ?? 'explain'; const _tab = TABS.some(t => t[0] === rawTab) ? rawTab : 'explain';
   const goTab = (t: string, el?: string | null) => { const n = new URLSearchParams(sp); n.set('tab', t); setSp(n, { replace: true }); if (el) setTimeout(() => document.getElementById(el)?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 80); else window.scrollTo({ top: 0 });}; const toast = useToast(); const { profile } = useAuth(); const { lang } = useLang();
   const s = useLoad(() => get(`/lessons/${id}`), [id]); const [bm, setBm] = useState(false); const [done, setDone] = useState(false);
   useEffect(() => { if (s.data) { setBm(s.data.bookmarked); setDone(s.data.progress.completed); post(`/lessons/${id}/open`).catch(() => {}); } }, [s.data, id]);

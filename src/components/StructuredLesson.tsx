@@ -71,7 +71,7 @@ function Verify({ e, kind, lessonId, itemId, onDone }: { e: any; kind: string; l
 const Tag = ({ s }: { s: string }) => <Badge tone={s === 'textbook' ? 'success' : s === 'ai' ? 'info' : 'neutral'}><Bi en={SRC_LABEL[s][0]} ta={SRC_LABEL[s][1]} /></Badge>;
 const has = (v: any) => (Array.isArray(v) ? v.length > 0 : !!v);
 
-function Detail({ lessonId, st, id, go, onProgress }: { lessonId: string; st: any; id: string; go: (v: string, i?: string) => void; onProgress: () => void }) {
+function Detail({ lessonId, st: _st, id, go, onProgress }: { lessonId: string; st: any; id: string; go: (v: string, i?: string) => void; onProgress: () => void }) {
   const [reading, setReading] = useState<string | null>(null); useEffect(() => setReading(null), [id]);
   const s = useLoad(() => get(`/lessons/${lessonId}/items/${id}`), [lessonId, id]); const toast = useToast(); const { lang } = useLang(); const [busy, setBusy] = useState(''); const [fresh, setFresh] = useState<any>({}); const [showMap, setShowMap] = useState(true); const [mapKey, setMapKey] = useState(0); const [done, setDone] = useState<boolean | null>(null);
   useEffect(() => { setFresh({}); setDone(null); setMapKey(k => k + 1); if (id) post(`/lessons/${lessonId}/items/${id}/progress`, { event: 'view' }).then(onProgress).catch(() => {}); }, [id]); // eslint-disable-line
@@ -139,7 +139,7 @@ function Mcq({ p }: { p: any }) {
   return <div className="col item"><p lang="ta" className="ta">{p.stem}</p><div className="chips">{p.options.map((o: string, i: number) => <button key={o} className={`btn ${pick === null ? 'secondary' : i === p.correct ? '' : pick === i ? 'danger' : 'secondary'}`} disabled={pick !== null} onClick={() => setPick(i)} lang="ta">{o}</button>)}</div>{pick !== null && <p className="muted small">{pick === p.correct ? 'Correct.' : `The word is “${p.options[p.correct]}”.`}</p>}</div>;
 }
 
-function PracticeView({ lessonId, st, go }: { lessonId: string; st: any; go: (v: string, i?: string) => void }) {
+function PracticeView({ lessonId: _lessonId, st, go }: { lessonId: string; st: any; go: (v: string, i?: string) => void }) {
   const qs: Item[] = st.items.filter((i: Item) => i.kind === 'question'); const groups = useMemo(() => { const m = new Map<string, Item[]>(); for (const q of qs) { const k = q.question?.category ?? 'வினாக்கள்'; m.set(k, [...(m.get(k) ?? []), q]); } return [...m]; }, [qs]);
   if (!qs.length) return <Empty title="No textbook questions found" text="No questions were read from these pages. Use the Practice questions tab for questions made from the chapter." />;
   return <div className="col"><p className="muted small"><Bi en="Textbook questions with their original numbers. Answers are hidden until you ask. This book does not print an answer key, so any answer shown is AI-generated." ta="பாடநூல் வினாக்கள் அதே எண்களுடன். விடைகள் நீங்கள் கேட்டால் மட்டுமே. இந்நூலில் விடைகள் இல்லை; காட்டப்படும் விடை AI உருவாக்கியது." /></p>

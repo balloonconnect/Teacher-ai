@@ -15,7 +15,7 @@ type Lang = 'ta' | 'en' | 'both';
 type Mode = 'teach' | 'explain' | 'hint' | 'practice' | 'revise';
 type Item = { id: string; role: 'student' | 'tutor'; kind: string; en: string; ta: string; say?: { en: string; ta: string }; step?: number | null; total?: number; math?: string[]; sources?: string[]; refs?: { bookId: string; page: number }[]; via?: string; visuals?: Visual[]; turn?: number };
 type Status = 'idle' | 'connecting' | 'listening' | 'thinking' | 'speaking' | 'paused' | 'error';
-const MODES: [Mode, string, string][] = [['teach', 'Teach me', 'கற்றுக்கொடு'], ['explain', 'Explain fully', 'முழுமையாக விளக்கு'], ['hint', 'Give me a hint', 'குறிப்பு கொடு'], ['practice', 'Practice with me', 'என்னுடன் பயிற்சி'], ['revise', 'Revise this topic', 'இந்தப் பாடத்தைத் திருப்பு']];
+const _MODES: [Mode, string, string][] = [['teach', 'Teach me', 'கற்றுக்கொடு'], ['explain', 'Explain fully', 'முழுமையாக விளக்கு'], ['hint', 'Give me a hint', 'குறிப்பு கொடு'], ['practice', 'Practice with me', 'என்னுடன் பயிற்சி'], ['revise', 'Revise this topic', 'இந்தப் பாடத்தைத் திருப்பு']];
 const STATUS_TEXT: Record<Status, string> = { idle: 'Ready', connecting: 'Connecting…', listening: 'Listening…', thinking: 'Thinking…', speaking: 'Speaking…', paused: 'Paused', error: 'Something went wrong' };
 const SUBJ: [string, string][] = [['', 'Any subject'], ['maths', 'Mathematics'], ['science', 'Science'], ['english', 'English'], ['social', 'Social Science'], ['tamil', 'Tamil']];
 async function ttsFetch(sessionId: string, text: string, lang: string, signal: AbortSignal): Promise<Blob> {
@@ -53,8 +53,8 @@ export function VoiceTutor() {
   // session
   const [ses, setSes] = useState<any>(null); const [items, setItems] = useState<Item[]>([]); const [status, setStatus] = useState<Status>('idle'); const [err, setErr] = useState('');
   const [voiceOn, setVoiceOn] = useState(false); const [mic, setMic] = useState<'unknown' | 'ok' | 'denied' | 'unsupported'>(canListen ? 'unknown' : 'unsupported');
-  const [muted, setMuted] = useState(false); const [paused, setPaused] = useState(false); const [rate, setRate] = useState(1); const slow = rate < 1; const [review, setReview] = useState(false); const [ptt, setPtt] = useState(false); const [noticeRetry, setNoticeRetry] = useState<null | (() => void)>(null); const [replayInfo, setReplayInfo] = useState<{ ms: number; cached: boolean } | null>(null); const [interim, setInterim] = useState(''); const [speakingId, setSpeakingId] = useState<string | null>(null);
-  const [text, setText] = useState(''); const [micLang, setMicLang] = useState<SpeechLang>(uiLang === 'ta' ? 'ta' : 'en'); const [notice, setNotice] = useState(''); const [lastMs, setLastMs] = useState<{ text?: number; audio?: number; full?: number } | null>(null);
+  const [muted, setMuted] = useState(false); const [paused, setPaused] = useState(false); const [rate, setRate] = useState(1); const _slow = rate < 1; const [review, _setReview] = useState(false); const [ptt, _setPtt] = useState(false); const [noticeRetry, setNoticeRetry] = useState<null | (() => void)>(null); const [_replayInfo, setReplayInfo] = useState<{ ms: number; cached: boolean } | null>(null); const [interim, setInterim] = useState(''); const [speakingId, setSpeakingId] = useState<string | null>(null);
+  const [text, setText] = useState(''); const [micLang, setMicLang] = useState<SpeechLang>(uiLang === 'ta' ? 'ta' : 'en'); const [notice, setNotice] = useState(''); const [_lastMs, setLastMs] = useState<{ text?: number; audio?: number; full?: number } | null>(null);
 
   const R = useRef({ ses: null as any, lang, voiceOn: false, status: 'idle' as Status, muted: false, ac: null as AbortController | null, rec: null as Recognizer | null, micLang: 'en' as SpeechLang, streaming: false, last: null as any, t0: 0, tText: 0, tAudio: 0, sttMs: 0, retries: 0, showBoth: true, review: false, turn: 0 });
   const spRef = useRef<Speaker | CloudSpeaker>(new Speaker()); const speaker = spRef.current;
@@ -147,16 +147,16 @@ export function VoiceTutor() {
     } catch (e) { setSt('error'); setErr(msg(e)); }
   };
   const end = async () => { interrupt('new'); spRef.current.release(); stopMic(); setVoiceOn(false); R.current.voiceOn = false; const s = R.current.ses; setSes(null); R.current.ses = null; setSt('idle'); setInterim(''); if (s) { try { await post(`/voice/sessions/${s.id}/end`); } catch { /* ignore */ } } get('/voice/sessions').then(l => setPrior(l.sessions.filter((x: any) => x.status === 'active'))).catch(() => {}); };
-  const wipe = async () => { const s = R.current.ses; if (!s || !confirm('Delete this lesson and its transcript from your account?')) return; await end(); try { await api('DELETE', `/voice/sessions/${s.id}`); setPrior(p => p.filter(x => x.id !== s.id)); } catch (e) { setErr(msg(e)); } };
-  const switchMode = async (m: Mode) => { setMode(m); if (!ses) return; try { await api('PATCH', `/voice/sessions/${ses.id}`, { mode: m }); } catch { /* the turn below also sets it */ } sendTurn({ action: `mode:${m}`, text: m === 'practice' || m === 'revise' ? '' : '' }, 'text'); };
-  const changeLang = async (l: Lang) => { setLang(l); R.current.lang = l; if (ses) api('PATCH', `/voice/sessions/${ses.id}`, { lang: l }).catch(() => {}); };
+  const _wipe = async () => { const s = R.current.ses; if (!s || !confirm('Delete this lesson and its transcript from your account?')) return; await end(); try { await api('DELETE', `/voice/sessions/${s.id}`); setPrior(p => p.filter(x => x.id !== s.id)); } catch (e) { setErr(msg(e)); } };
+  const _switchMode = async (m: Mode) => { setMode(m); if (!ses) return; try { await api('PATCH', `/voice/sessions/${ses.id}`, { mode: m }); } catch { /* the turn below also sets it */ } sendTurn({ action: `mode:${m}`, text: m === 'practice' || m === 'revise' ? '' : '' }, 'text'); };
+  const _changeLang = async (l: Lang) => { setLang(l); R.current.lang = l; if (ses) api('PATCH', `/voice/sessions/${ses.id}`, { lang: l }).catch(() => {}); };
   const togglePause = () => { if (paused) { speaker.resume(); setPaused(false); if (speaker.speaking) setSt('speaking'); } else { speaker.pause(); setPaused(true); setSt('paused'); } };
   /** Replays already-written text with no new language-model request. Does not stop an answer that is still being generated. */
   const speakItems = (xs: Item[]) => { const segs = xs.flatMap(segsFor); if (!segs.length) { if (xs[0]) setSpeakingId(xs[0].id); return; } setPaused(false); setNotice(''); setNoticeRetry(null); if (R.current.status !== 'thinking') setSt('speaking'); speaker.replay(segs); };
   const tutorItems = items.filter(i => i.role === 'tutor');
   const replay = (it?: Item) => { const target = it ?? [...tutorItems].reverse().find(i => i.kind === 'step') ?? tutorItems[tutorItems.length - 1]; if (target) speakItems([target]); };
   const replayAnswer = (turn?: number) => { const t = turn ?? tutorItems[tutorItems.length - 1]?.turn; if (t === undefined) return; speakItems(tutorItems.filter(i => i.turn === t)); };
-  const skip = () => { if (speaker.speaking) speaker.skip(); else sendTurn({ action: 'next' }); };
+  const _skip = () => { if (speaker.speaking) speaker.skip(); else sendTurn({ action: 'next' }); };
   const pttDown = () => { if (R.current.voiceOn || mic === 'unsupported' || mic === 'denied') return; setErr(''); setVoiceOn(true); R.current.voiceOn = true; setSt(R.current.status === 'idle' ? 'listening' : R.current.status); startMic(); };
   const pttUp = () => { if (!R.current.voiceOn) return; R.current.voiceOn = false; setVoiceOn(false); stopMic(); if (R.current.status === 'listening') setSt('idle'); };
   const retry = () => { const l = R.current.last; if (l) sendTurn(l.body, l.via); };
