@@ -1,0 +1,12 @@
+node_modules
+dist
+.DS_Store
+*.log
+*.tsbuildinfo
+data/
+uploads/
+.env
+.env.local
+coverage/
+dist-preview-bak/
+ta-left.json

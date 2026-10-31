@@ -1,0 +1,15 @@
+/* Design tokens — mirrored from the Figma "Foundations" variables */
+:root {
+  --bg:#f6f9fc; --surface:#fff; --surface-alt:#eef3f9; --border:#dbe4ef;
+  --text:#0b1f4d; --text-muted:#4a5878;
+  --primary:#0a3d91; --primary-dark:#032862; --primary-soft:#e8f0fb; --on-primary:#fff;
+  --accent:#067a6c; --accent-soft:#dcf5ef; --brand-green:#2fae4f; --brand-yellow:#faaf25; --brand-cyan:#3dd0ff;
+  --success:#15803d; --success-soft:#dcfce7;
+  --warning:#b45309; --warning-soft:#fef3c7;
+  --danger:#b91c1c; --danger-soft:#fee2e2;
+  --gold:#a8700a; --gold-soft:#fdf1d6;
+  --s4:4px; --s8:8px; --s12:12px; --s16:16px; --s24:24px; --s32:32px; --s48:48px;
+  --r-sm:8px; --r-md:12px; --r-lg:16px; --r-xl:24px;
+  --font:'Inter','Noto Sans Tamil',system-ui,sans-serif;
+  --font-ta:'Noto Sans Tamil','Noto Sans Tamil UI','Nirmala UI','Latha','Vijaya','Tamil Sangam MN','Inter',system-ui,sans-serif;
+}

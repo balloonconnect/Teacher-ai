@@ -1,0 +1,10 @@
+node_modules
+dist
+dist-preview-bak
+data
+tests
+docs
+.git
+.env
+*.log
+*.tsbuildinfo

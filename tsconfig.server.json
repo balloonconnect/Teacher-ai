@@ -1,0 +1,4 @@
+{
+  "compilerOptions": { "target": "ES2022", "module": "ESNext", "moduleResolution": "bundler", "strict": true, "noEmit": true, "skipLibCheck": true, "esModuleInterop": true, "types": ["node"], "lib": ["ES2022"] },
+  "include": ["server", "tests"]
+}
