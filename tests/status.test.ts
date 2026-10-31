@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { textbookLessons } from '../server/curriculum';
 import { client, DEMO, setup } from './helpers';
 import { bootstrapProduction } from '../server/seed';
 import { openDb, q } from '../server/db';
@@ -22,7 +23,7 @@ describe('live set-up checks', () => {
   it('a production start has no demo accounts but does have subjects, lessons and practice questions', async () => {
     const db = await openDb(':memory:'); await bootstrapProduction(db); await bootstrapProduction(db); // idempotent
     expect(Number((await q.get<any>(db, 'SELECT COUNT(*) n FROM users'))!.n)).toBe(0);
-    const st = await systemStatus(db); expect(st.content.practiceQuestions).toBeGreaterThan(10); expect(st.content.lessons).toBeGreaterThan(0);
+    const st = await systemStatus(db); expect(st.content.practiceQuestions).toBeGreaterThan(10); expect(st.content.lessons).toBeGreaterThanOrEqual(textbookLessons().length ? 1 : 0); // lessons come only from textbook excerpts, which are not kept in this repo
     const ids = await q.all<any>(db, "SELECT id FROM questions WHERE origin='practice'"); expect(new Set(ids.map((x: any) => x.id)).size).toBe(ids.length);
   });
 });

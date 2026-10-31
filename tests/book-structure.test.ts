@@ -137,7 +137,6 @@ describe('API', () => {
     await seed(); const s = await as(DEMO.student); const st = (await s.get(`/api/lessons/${LID}/structure`)).body.structure;
     const qn = st.items.find((i: any) => i.kind === 'question'); const k = st.items.find((i: any) => i.kind === 'couplet');
     expect((await s.post(`/api/lessons/${LID}/items/${k.id}/ai`, {})).status).toBe(501);
-    const { buildApp } = await import('../server/app'); void buildApp;
     const llm = { name: 'mock', complete: async (a: any) => (a.user.includes('"answer"') ? JSON.stringify({ answer: 'மலர் என்பதே சரியான விடை ஆகும்.', why: 'சோதனை' }) : JSON.stringify({ simple_ta: 'இது ஒரு எளிய தமிழ் விளக்கம் ஆகும்.', central_idea: 'சோதனை மையக் கருத்து ஆகும்', keywords: ['மலர்'], word_meanings: [{ word: k.lines[0].split(' ')[0], meaning: 'சோதனை பொருள்' }, { word: 'இல்லாதசொல்', meaning: 'கற்பனை' }] })) };
     const ex = await explainItem(llm as any, k, 'explain', { chapter: 'x' });
     expect(ex.word_meanings).toHaveLength(1); // the invented word is dropped
