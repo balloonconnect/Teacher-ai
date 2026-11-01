@@ -1,0 +1,9 @@
+# HTTPS certificates are fetched and renewed automatically. DOMAIN comes from .env.prod.
+{$DOMAIN} {
+	encode gzip
+	# Textbook PDFs and voice audio can be large.
+	request_body {
+		max_size 100MB
+	}
+	reverse_proxy app:3001
+}

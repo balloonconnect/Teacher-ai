@@ -1,0 +1,44 @@
+# Production on ONE server (a VPS): the app, PostgreSQL and Caddy (automatic HTTPS).
+#   cp .env.prod.example .env.prod   # fill in every value
+#   docker compose -f docker-compose.prod.yml --env-file .env.prod up -d --build
+# Textbook PDFs and student uploads are stored on the `appdata` volume (STORAGE_DRIVER=local). Back it up: scripts/backup.sh
+# Run ONE app instance only (the rate limiter and OCR queue are in memory).
+services:
+  db:
+    image: postgres:16
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: karkai
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env.prod}
+      POSTGRES_DB: karkai
+    volumes: [dbdata:/var/lib/postgresql/data]
+    healthcheck: { test: ["CMD-SHELL", "pg_isready -U karkai"], interval: 5s, timeout: 3s, retries: 20 }
+
+  app:
+    build: .
+    restart: unless-stopped
+    depends_on:
+      db: { condition: service_healthy }
+    env_file: [.env.prod]
+    environment:
+      NODE_ENV: production
+      PORT: "3001"
+      SEED_DEMO: "0"
+      DATABASE_URL: postgres://karkai:${POSTGRES_PASSWORD}@db:5432/karkai
+      STORAGE_DRIVER: local
+    volumes: [appdata:/data]
+    expose: ["3001"]
+
+  caddy:
+    image: caddy:2
+    restart: unless-stopped
+    depends_on: [app]
+    environment:
+      DOMAIN: ${DOMAIN:?set DOMAIN in .env.prod}
+    ports: ["80:80", "443:443"]
+    volumes:
+      - ./deploy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddydata:/data
+      - caddyconfig:/config
+
+volumes: { dbdata: {}, appdata: {}, caddydata: {}, caddyconfig: {} }
