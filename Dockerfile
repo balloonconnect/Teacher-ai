@@ -1,5 +1,5 @@
 # Kavli: API + built front end in one image, with Tamil + English OCR for scanned textbooks.
-FROM node:22-bookworm-slim AS build
+FROM node:26-bookworm-slim AS build
 WORKDIR /app
 COPY package*.json ./
 RUN npm ci
@@ -8,7 +8,7 @@ COPY . .
 ENV VITE_UI_PREVIEW=0
 RUN npm run build
 
-FROM node:22-bookworm-slim
+FROM node:26-bookworm-slim
 RUN apt-get update \
  && apt-get install -y --no-install-recommends tesseract-ocr tesseract-ocr-eng tesseract-ocr-tam poppler-utils ca-certificates curl \
  && rm -rf /var/lib/apt/lists/*
