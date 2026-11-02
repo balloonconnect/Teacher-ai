@@ -4,9 +4,12 @@ Everything else is built and tested. Each step below takes a few minutes.
 **Never paste a key into code, an issue or a chat. The repo is public.**
 
 ## 1. AI model key (required)
+**Free option:** create a Gemini key in Google AI Studio and put the four `LLM_*` lines from `.env.prod.example` in `.env.prod` (Option A there). Check the current free limits and data-use terms first: a free tier has request caps and may let the provider use prompts, so it suits a pilot, not thousands of students.
+**Paid option:**
 1. Sign in at console.anthropic.com, add billing, create an API key.
 2. On the server, put it in `.env.prod`: `ANTHROPIC_API_KEY=...` (model name in `ANTHROPIC_MODEL`).
 3. Set a monthly spend limit in the console.
+Either way, run `npx tsx scripts/check-tutor.ts --limit 10` with the same variables once, and have a Tamil teacher read some real answers (step 6).
 
 ## 2. Textbooks (required for Class 8 content)
 1. Confirm you may host them: check the licence/terms of the official Tamil Nadu free textbook downloads, or get written permission from the publisher.
