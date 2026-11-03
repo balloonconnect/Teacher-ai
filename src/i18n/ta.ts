@@ -4,13 +4,14 @@ import { TEXT2 } from './ta-text2';
 import { MSG } from './ta-msg';
 import { SRV } from './ta-srv';
 import { BOOK } from './ta-book';
+import { EXTRAS } from './ta-extras';
 
 /**
  * Tamil for the interface. Key = the exact English phrase shown on screen (whitespace collapsed). Value = natural written Tamil, as a teacher would say it to a child.
  * Please have a Tamil teacher review these files (ta.ts, ta-ui.ts, ta-text.ts, ta-text2.ts): every line is what students read in தமிழ் mode.
  * Phrases with numbers or names go in PATTERNS below.
  */
-export const TA: Record<string, string> = { ...UI, ...TEXT, ...TEXT2, ...MSG, ...SRV, ...BOOK };
+export const TA: Record<string, string> = { ...UI, ...TEXT, ...TEXT2, ...MSG, ...SRV, ...BOOK, ...EXTRAS };
 
 const DAYS: Record<string, string> = { Mon: 'திங்', Tue: 'செவ்', Wed: 'புத', Thu: 'வியா', Fri: 'வெள்', Sat: 'சனி', Sun: 'ஞாயி' };
 const SUBJ = 'English|Mathematics|Science|Social Science|Tamil';

@@ -18,6 +18,7 @@ import { voiceRoutes } from './routes/voice';
 import type { TeachEngine } from './services/teach';
 import { teacherRoutes } from './routes/teacher';
 import { adminRoutes, parentRoutes, schoolRoutes } from './routes/roles';
+import { messageRoutes } from './routes/messages';
 import { selectProvider, TutorProvider } from './services/tutor';
 
 export function createApp(db: DB, opts: { provider?: TutorProvider; serveStatic?: boolean; voiceEngine?: TeachEngine; voiceMax?: number; voiceQueueMs?: number; voiceVisuals?: any; voiceTts?: any; llm?: any } = {}) {
@@ -44,6 +45,7 @@ export function createApp(db: DB, opts: { provider?: TutorProvider; serveStatic?
   api.use('/textbooks', textbookRoutes(db));
   api.use('/teacher', teacherRoutes(db));
   api.use('/parent', parentRoutes(db));
+  api.use('/messages', messageRoutes(db));
   api.use('/school', schoolRoutes(db));
   api.use('/admin', adminRoutes(db));
   api.use(testRoutes(db));

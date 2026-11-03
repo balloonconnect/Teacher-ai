@@ -65,3 +65,12 @@ Verified by tests (68 passing) and a 375 px browser check of the preview build (
 
 ## Voice tutor
 - `/app/voice`: voice + text tutor with five teaching modes, streaming turns, interruption, saved/resumable sessions, usage limits and latency metrics. See `docs/VOICE_TUTOR.md` (architecture, install, tests, honest limits). Default engine is rule-based; real-time/LLM/local-GPU providers are an interface, not implemented.
+
+## Figma match pass (go-live-prep)
+Compared the 16 flows on the Figma "final complete screen" page (about 130 screens) with the routes in `src/App.tsx`. Added what was missing:
+- **PAR-04 Weekly reports** (`/parent/reports`, `GET /api/parent/children/:id/reports`, "Email me this report"), **PAR-05 Messages** (`/parent/messages`, `/teacher/messages`, `/api/messages/*`, migration 6, limited to a parent and the teacher of their child's class), **SET-01 Notifications** page (`/notifications`) and **SET-02 Settings** for parent, teacher and admin (`/account`).
+- Email templates EML-04 weekly report, EML-05 teacher approved, EML-06 account pending (sent on sign-up and on approval when a mail provider is set).
+- Mobile bottom tab bar (Home, Lessons, AI, Quizzes, Progress) and tablet icon rail, as in the MOB/TAB frames.
+- Tests: `tests/messages.test.ts` (7). Tamil strings for the new screens are in `src/i18n/ta-extras.ts` (not yet reviewed by a Tamil teacher).
+
+Not matched or not checked: a separate role-select step (the shared sign-up covers it by earlier decision); dashboard "study time" and "quiz accuracy" cards (study time is not tracked, and nothing is estimated); a school-admin screen set (Figma has none); the Q-flow interaction states and a pixel-level comparison of every screen. Only the student dashboard was compared visually at mobile and tablet widths, plus the new parent screens at desktop and mobile.

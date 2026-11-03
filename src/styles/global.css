@@ -283,3 +283,24 @@ input[aria-invalid=true]{border-color:var(--danger)}
 @media(max-width:900px){.content{padding-bottom:88px}.lessonnav{bottom:84px!important}.bottomnav button{flex:none;flex-direction:row;justify-content:center;align-items:center;width:56px;height:56px;min-height:56px;padding:0;border-radius:50%;background:var(--primary);color:#fff;font-size:14px;font-weight:600;box-shadow:0 4px 14px rgba(10,61,145,.3);cursor:pointer}.bottomnav button:focus-visible{outline:3px solid var(--primary-soft);outline-offset:2px}}
 
 .reading{background:var(--accent-soft,#fff3c4);box-shadow:0 0 0 3px var(--accent-soft,#fff3c4);border-radius:6px;transition:background .2s}
+
+/* Figma match: tablet (641-900px) icon rail, mobile (<=640px) bottom tab bar + menu button in the top bar. Later rules override the older 900px block above. */
+.menutop{display:none}
+@media(min-width:641px) and (max-width:900px){
+  .side{display:flex!important;width:80px;padding:16px 6px;align-items:center}
+  .side .logo{padding:0 0 12px}.side .logo>span:last-child{display:none}
+  .side .navscroll{width:100%;align-items:stretch}
+  .side .nav{flex-direction:column;gap:3px;padding:8px 2px;text-align:center;font-size:11px;line-height:1.2;justify-content:center}
+  .side .navlbl{align-items:center;word-break:break-word}.side .navta{display:none}
+  .side .usercard{flex-direction:column;padding:8px 4px;width:100%}.side .usercard .grow{display:none}
+  .bottomnav{display:none!important}.topbar .mlogo{display:none}
+  .content{padding:24px;padding-bottom:24px}.lessonnav{bottom:16px!important}
+  .g2{grid-template-columns:repeat(2,1fr)}.g3{grid-template-columns:repeat(3,1fr)}.grid.g4.stat{grid-template-columns:repeat(2,1fr)}
+}
+@media(max-width:640px){
+  .bottomnav{left:0;right:0;bottom:0;justify-content:space-around;gap:0;padding:6px 4px calc(6px + env(safe-area-inset-bottom));background:var(--surface);border-top:1px solid var(--border);box-shadow:0 -2px 10px rgba(16,24,40,.06)}
+  .bottomnav a{min-height:48px;justify-content:center;padding:4px 2px;border-radius:10px;text-decoration:none}
+  .bottomnav a span{font-size:11px;line-height:1.1;text-align:center}
+  .menutop{display:inline-flex}
+  .content{padding-bottom:84px}
+}

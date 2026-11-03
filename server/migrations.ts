@@ -26,4 +26,7 @@ export const MIGRATIONS: Migration[] = [
   { version: 4, name: 'item_ai_verified', sql: `ALTER TABLE item_ai ADD COLUMN verified_by TEXT; ALTER TABLE item_ai ADD COLUMN verified_at TEXT` },
   // Token counts reported by the AI provider for each call, so the admin can see real usage and an estimated cost. Only written when a provider returns usage.
   { version: 5, name: 'ai_token_usage', sql: `CREATE TABLE ai_token_usage (id INTEGER PRIMARY KEY AUTOINCREMENT, provider TEXT NOT NULL, input_tokens INTEGER NOT NULL, output_tokens INTEGER NOT NULL, at TEXT NOT NULL)` },
+  // Messages between a parent and a teacher who teaches one of the parent's linked children (Figma PAR-05 Messages).
+  { version: 6, name: 'parent_teacher_messages', sql: `CREATE TABLE parent_teacher_messages (id TEXT PRIMARY KEY, from_id TEXT NOT NULL, to_id TEXT NOT NULL, body TEXT NOT NULL, created_at TEXT NOT NULL, read_at TEXT);
+    CREATE INDEX parent_teacher_messages_pair ON parent_teacher_messages (from_id, to_id, created_at)` },
 ];

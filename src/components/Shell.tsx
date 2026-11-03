@@ -13,13 +13,25 @@ const T = (to: string, en: string, ta: string, icon: NavItem['icon'], end = fals
 export const NAV: Record<Role, NavItem[]> = {
   student: [T('/app', 'Dashboard', 'முகப்பு', 'home', true), T('/app/learn', 'Learn', 'பாடங்கள்', 'layers'), T('/app/tutor', 'AI Tutor', 'AI ஆசிரியர்', 'chat'), T('/app/voice', 'Voice Tutor', 'குரல் ஆசிரியர்', 'mic'),
     T('/app/practice', 'Practice', 'பயிற்சி', 'target'), T('/app/tests', 'Weekly Tests', 'வாராந்திரத் தேர்வுகள்', 'test'), T('/app/progress', 'Progress', 'முன்னேற்றம்', 'chart'), T('/app/certificates', 'Certificates', 'சான்றிதழ்கள்', 'award'), T('/app/bookmarks', 'Bookmarks', 'புத்தகக்குறி', 'bookmark'), T('/app/settings', 'Settings', 'அமைப்புகள்', 'settings')],
-  parent: [T('/parent', 'My children', 'என் குழந்தைகள்', 'users', true), T('/parent/settings', 'Account', 'கணக்கு', 'settings')],
-  teacher: [T('/teacher', 'Overview', 'மேலோட்டம்', 'home', true), T('/teacher/classes', 'Classes', 'வகுப்புகள்', 'users'), T('/teacher/tests', 'Weekly Tests', 'வாராந்திரத் தேர்வுகள்', 'test'), T('/teacher/reviews', 'Marking queue', 'மதிப்பீட்டு வரிசை', 'edit'), T('/teacher/questions', 'Question bank', 'கேள்வி வங்கி', 'layers'), T('/teacher/books', 'Class books', 'வகுப்புப் புத்தகங்கள்', 'book'), T('/teacher/lessons', 'Lesson review', 'பாடச் சரிபார்ப்பு', 'check'), T('/teacher/certificates', 'Certificates', 'சான்றிதழ்கள்', 'award')],
-   school_admin: [T('/app', 'Home', 'முகப்பு', 'home', true), T('/admin/books', 'Class books', 'வகுப்புப் புத்தகங்கள்', 'book')], admin: [T('/app', 'Home', 'முகப்பு', 'home', true), T('/admin/people', 'People', 'நபர்கள்', 'users'), T('/admin/books', 'Class books', 'வகுப்புப் புத்தகங்கள்', 'book'), T('/teacher/lessons', 'Lesson review', 'பாடச் சரிபார்ப்பு', 'check'), T('/admin/ai', 'AI usage', 'AI பயன்பாடு', 'layers')], pending: [T('/app', 'Home', 'முகப்பு', 'home', true)],
+  parent: [T('/parent', 'My children', 'என் குழந்தைகள்', 'users', true), T('/parent/reports', 'Weekly reports', 'வாராந்திர அறிக்கைகள்', 'file'), T('/parent/messages', 'Messages', 'செய்திகள்', 'chat'), T('/notifications', 'Notifications', 'அறிவிப்புகள்', 'bell'), T('/parent/settings', 'Account', 'கணக்கு', 'settings')],
+  teacher: [T('/teacher', 'Overview', 'மேலோட்டம்', 'home', true), T('/teacher/classes', 'Classes', 'வகுப்புகள்', 'users'), T('/teacher/tests', 'Weekly Tests', 'வாராந்திரத் தேர்வுகள்', 'test'), T('/teacher/reviews', 'Marking queue', 'மதிப்பீட்டு வரிசை', 'edit'), T('/teacher/questions', 'Question bank', 'கேள்வி வங்கி', 'layers'), T('/teacher/books', 'Class books', 'வகுப்புப் புத்தகங்கள்', 'book'), T('/teacher/lessons', 'Lesson review', 'பாடச் சரிபார்ப்பு', 'check'), T('/teacher/certificates', 'Certificates', 'சான்றிதழ்கள்', 'award'), T('/teacher/messages', 'Messages', 'செய்திகள்', 'chat'), T('/account', 'Settings', 'அமைப்புகள்', 'settings')],
+   school_admin: [T('/app', 'Home', 'முகப்பு', 'home', true), T('/admin/books', 'Class books', 'வகுப்புப் புத்தகங்கள்', 'book')], admin: [T('/app', 'Home', 'முகப்பு', 'home', true), T('/admin/people', 'People', 'நபர்கள்', 'users'), T('/admin/books', 'Class books', 'வகுப்புப் புத்தகங்கள்', 'book'), T('/teacher/lessons', 'Lesson review', 'பாடச் சரிபார்ப்பு', 'check'), T('/admin/ai', 'AI usage', 'AI பயன்பாடு', 'layers'), T('/account', 'Settings', 'அமைப்புகள்', 'settings')], pending: [T('/app', 'Home', 'முகப்பு', 'home', true)],
 };
 const ROLE_LABEL: Record<Role, string> = { student: 'Student', parent: 'Parent / guardian', teacher: 'Teacher', school_admin: 'School admin', admin: 'Platform admin', pending: 'Awaiting approval' };
 
 function Label({ n }: { n: NavItem }) { const { lang } = useLang(); return <span className="navlbl">{lang === 'ta' ? <span lang="ta" className="ta">{n.ta}</span> : <>{n.en}{lang === 'both' && <span lang="ta" className="ta navta">{n.ta}</span>}</>}</span>; }
+
+/** Mobile bottom tab bar (Figma MOB-*): five places per role, labelled as short as the design (Home, Lessons, AI, Quizzes, Progress). Everything else is in the menu button. */
+const TABS: Partial<Record<Role, [string, string][]>> = {
+  student: [['/app', 'Home'], ['/app/learn', 'Lessons'], ['/app/tutor', 'AI'], ['/app/tests', 'Quizzes'], ['/app/progress', 'Progress']],
+  parent: [['/parent', 'Children'], ['/parent/reports', 'Reports'], ['/parent/messages', 'Messages'], ['/notifications', 'Alerts']],
+  teacher: [['/teacher', 'Overview'], ['/teacher/classes', 'Classes'], ['/teacher/tests', 'Tests'], ['/teacher/reviews', 'Marking']],
+};
+function TabBar({ role, items }: { role: Role; items: NavItem[] }) {
+  const { lang } = useLang();
+  const tabs = (TABS[role] ?? items.slice(0, 4).map((n): [string, string] => [n.to, n.short ?? n.en])).map(([to, short]) => ({ to, short, n: items.find(i => i.to === to) })).filter((t): t is { to: string; short: string; n: NavItem } => !!t.n);
+  return <>{tabs.map(({ to, short, n }) => <NavLink key={to} to={to} end={n.end} className={({ isActive }) => (isActive ? 'active' : '')}><Icon name={n.icon} size={22} /><span lang={lang === 'ta' ? 'ta' : undefined}>{lang === 'ta' ? n.ta : short}</span></NavLink>)}</>;
+}
 
 function Bell() {
   const [open, setOpen] = useState(false); const [d, setD] = useState<any>(null); const ref = useRef<HTMLDivElement>(null);
@@ -60,10 +72,11 @@ export function Shell({ children }: { children: ReactNode }) {
           {user.role === 'student' && <form className="searchform" role="search" onSubmit={e => { e.preventDefault(); nav(`/app/learn?q=${encodeURIComponent(q)}`); }}><Icon name="search" size={16} /><input className="search" value={q} onChange={e => setQ(e.target.value)} placeholder="Search lessons…" aria-label="Search lessons" /></form>}
           <div className="grow" />{!config?.bookOnly && <Badge tone="warning">Sample content</Badge>}<LangToggle />
           <Bell />
+          <button className="btn secondary iconbtn menutop" onClick={() => setMore(true)} aria-label="More menu" aria-haspopup="dialog"><Icon name="menu" size={20} /></button>
         </header>
         <main className="content" id="main" tabIndex={-1}><OfflineBanner />{children}</main>
         <nav className="bottomnav" aria-label="Primary">
-          <button onClick={() => setMore(true)} aria-label="More menu" aria-haspopup="dialog"><Icon name="menu" size={24} /></button>
+          <TabBar role={user.role} items={items} />
         </nav>
       </div>
       {more && <div className="sheet-bg" onMouseDown={e => e.target === e.currentTarget && setMore(false)}><div className="sheet" role="dialog" aria-modal="true" aria-label="Menu">

@@ -5,7 +5,7 @@ import { DB, q, tx } from '../db';
 import { audit, hashPassword, newToken, requireRole, uid } from '../security';
 import { mailer, publicUrl } from '../services/mailer';
 import { createToken } from '../services/emailTokens';
-import { resetMail } from '../services/mailTemplates';
+import { approvedMail, resetMail, weeklyReportMail } from '../services/mailTemplates';
 import { iso } from '../clock';
 import { J, canAccessStudent, parse, wrap } from '../http';
 import { HttpError, testStatus } from '../services/tests';
@@ -32,6 +32,30 @@ export function parentRoutes(db: DB) {
     const link = (await q.get<any>(db, 'SELECT notify FROM guardian_links WHERE parent_id=? AND student_id=?', req.user!.id, sid));
     res.json({ student: { id: sid, name: p.full_name, class_level: p.class_level, ref_no: p.ref_no, academic_year: p.academic_year, subjects: J(p.subjects) }, report: rep, activity: await activitySummary(db, sid), tests, history, certificates: certs, notify: !!link?.notify,
       recommendations: rep.revisionTopics.length ? rep.revisionTopics.slice(0, 3).map(t => `Spend 15 minutes this week practising “${t.topic}” (${t.pct}% in recent tests).`) : [rep.finalised ? 'Keep up the steady practice.' : 'Encourage a weekly test to see where support is needed.'] });
+  }));
+  /** Weekly reports built from the child's finished test results, newest week first (weeks start on Monday). */
+  const weekly = async (sid: string) => {
+    const rows = await q.all<any>(db, "SELECT t.title, a.submitted_at, r.pct, r.status FROM attempts a JOIN results r ON r.attempt_id=a.id JOIN tests t ON t.id=a.test_id WHERE a.student_id=? AND a.status!='in_progress' AND a.submitted_at IS NOT NULL ORDER BY a.submitted_at DESC", sid);
+    const weeks = new Map<string, any[]>();
+    for (const x of rows) { const d = new Date(x.submitted_at); const day = (d.getUTCDay() + 6) % 7; const mon = new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate() - day)).toISOString().slice(0, 10); (weeks.get(mon) ?? weeks.set(mon, []).get(mon)!).push(x); }
+    const fmt = (iso: string) => new Date(`${iso}T00:00:00Z`).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', timeZone: 'UTC' });
+    return [...weeks.entries()].map(([weekStart, xs]) => { const end = new Date(`${weekStart}T00:00:00Z`); end.setUTCDate(end.getUTCDate() + 6);
+      const pcts = xs.map(x => Number(x.pct)).filter(n => Number.isFinite(n));
+      return { weekStart, weekLabel: `${fmt(weekStart)} – ${fmt(end.toISOString().slice(0, 10))}`, attempted: xs.length, passed: xs.filter(x => x.status === 'passed').length, avgPct: pcts.length ? Math.round(pcts.reduce((a, b) => a + b, 0) / pcts.length) : null, tests: xs.map(x => ({ title: x.title, pct: Math.round(Number(x.pct) || 0), status: x.status === 'passed' ? 'Passed' : x.status === 'failed' ? 'Not passed' : 'Pending review' })) }; });
+  };
+  r.get('/children/:id/reports', wrap(async (req, res) => {
+    if (!(await canAccessStudent(db, req.user!, req.params.id))) throw new HttpError(403, 'You do not have access to this student.');
+    const p = (await q.get<any>(db, 'SELECT full_name FROM student_profiles WHERE user_id=?', req.params.id)); if (!p) throw new HttpError(404, 'Student not found.');
+    res.json({ student: { id: req.params.id, name: p.full_name }, reports: await weekly(req.params.id) });
+  }));
+  r.post('/children/:id/reports/email', wrap(async (req, res) => {
+    const b = parse(z.object({ weekStart: z.string().regex(/^\d{4}-\d{2}-\d{2}$/) }), req.body);
+    if (!(await canAccessStudent(db, req.user!, req.params.id))) throw new HttpError(403, 'You do not have access to this student.');
+    const m = mailer(); if (!m) throw new HttpError(400, 'Email is not set up on this server, so the report cannot be emailed.');
+    const rep = (await weekly(req.params.id)).find(x => x.weekStart === b.weekStart); if (!rep) throw new HttpError(404, 'There is no report for that week.');
+    const p = (await q.get<any>(db, 'SELECT full_name FROM student_profiles WHERE user_id=?', req.params.id))!;
+    try { await m.send(weeklyReportMail(req.user!.email, req.user!.display_name, p.full_name, rep, `${publicUrl()}/parent/reports?child=${req.params.id}`)); } catch { throw new HttpError(502, 'The email service did not accept the message. Try again later.'); }
+    res.json({ ok: true });
   }));
   r.put('/children/:id/settings', wrap(async (req, res) => { const b = parse(z.object({ notify: z.boolean() }), req.body); if (!(await canAccessStudent(db, req.user!, req.params.id))) throw new HttpError(403, 'No access.'); await q.run(db, 'UPDATE guardian_links SET notify=? WHERE parent_id=? AND student_id=?', b.notify ? 1 : 0, req.user!.id, req.params.id); res.json({ ok: true }); }));
   return r;
@@ -82,6 +106,7 @@ export function adminRoutes(db: DB) {
       await q.run(db, 'INSERT INTO notifications(id,user_id,title,body,created_at) VALUES (?,?,?,?,?)', uid(), u.id, approve ? 'Your account was approved' : 'Your sign-up was not approved', approve ? `You can now use Karkai AI as a ${role === 'teacher' ? 'teacher' : 'school admin'}.` : 'Please contact your school if you think this is a mistake.', at);
       await audit(db, req.user!.id, approve ? 'role.approved' : 'role.declined', 'user', u.id, { role, schoolId: b.schoolId ?? null });
     });
+    if (approve) { const m = mailer(); const full = await q.get<any>(db, 'SELECT email,display_name FROM users WHERE id=?', u.id); if (m && full) m.send(approvedMail(full.email, full.display_name, role)).catch(e => console.warn(`[mail] approval not sent: ${String(e?.message ?? e).slice(0, 120)}`)); }
     res.json({ ok: true, role: approve ? role : null });
   }));
   /** Help someone who is locked out. "email" sends a one-time reset link; "temp" sets a one-time password the admin hands over (shown once, never stored in clear). */

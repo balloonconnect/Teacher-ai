@@ -15,6 +15,7 @@ import { Tutor } from './pages/tutor';
 import { ClassBooks, BookViewer, BookAdmin } from './pages/books';
 import { VoiceTutor } from './pages/voice';
 import { ParentHome, ParentChild, ParentAccount } from './pages/parent';
+import { AccountPage, Messages, NotificationsPage, ParentReports } from './pages/extras';
 import { TeacherHome, Classes, ClassDetail, Questions, TeacherTests, TestBuilder, TestResults, Reviews, ReviewAttempt, CertAdmin, LessonReview } from './pages/teacher';
 import type { ReactNode } from 'react';
 import type { Role } from './auth';
@@ -37,7 +38,7 @@ export default function App() {
       <Route path="/app/take/:id" element={S(['student'], <TakeTest />)} /><Route path="/app/result/:id" element={S(['student'], <Result />)} /><Route path="/app/review/:id" element={S(['student'], <Review />)} />
       <Route path="/app/progress" element={S(['student'], <Progress_ />)} /><Route path="/app/certificates" element={S(['student'], <Certificates />)} />
       <Route path="/app/bookmarks" element={S(['student'], <Bookmarks />)} /><Route path="/app/settings" element={S(['student'], <Settings />)} />
-      <Route path="/parent" element={S(['parent'], <ParentHome />)} /><Route path="/parent/child/:id" element={S(['parent'], <ParentChild />)} /><Route path="/parent/settings" element={S(['parent'], <ParentAccount />)} />
+      <Route path="/parent" element={S(['parent'], <ParentHome />)} /><Route path="/parent/reports" element={S(['parent'], <ParentReports />)} /><Route path="/parent/messages" element={S(['parent'], <Messages />)} /><Route path="/teacher/messages" element={S(['teacher'], <Messages />)} /><Route path="/notifications" element={S(ALL, <NotificationsPage />)} /><Route path="/account" element={S(['parent', 'teacher', 'school_admin', 'admin', 'pending'], <AccountPage />)} /><Route path="/parent/child/:id" element={S(['parent'], <ParentChild />)} /><Route path="/parent/settings" element={S(['parent'], <ParentAccount />)} />
       <Route path="/teacher" element={S(['teacher'], <TeacherHome />)} /><Route path="/teacher/classes" element={S(['teacher'], <Classes />)} /><Route path="/teacher/classes/:id" element={S(['teacher'], <ClassDetail />)} />
       <Route path="/teacher/questions" element={S(['teacher'], <Questions />)} /><Route path="/teacher/tests" element={S(['teacher'], <TeacherTests />)} /><Route path="/teacher/tests/new" element={S(['teacher'], <TestBuilder />)} />
       <Route path="/teacher/tests/:id" element={S(['teacher'], <TestBuilder />)} /><Route path="/teacher/tests/:id/results" element={S(['teacher'], <TestResults />)} />

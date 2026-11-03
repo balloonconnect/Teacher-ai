@@ -7,7 +7,7 @@ import { parse, wrap } from '../http';
 import { HttpError } from '../services/tests';
 import { readableId, DEMO_USERNAMES } from '../seed';
 import { Mail, mailer, publicUrl } from '../services/mailer';
-import { guardianMail, resetMail, verifyMail, changedMail } from '../services/mailTemplates';
+import { guardianMail, resetMail, verifyMail, changedMail, pendingMail } from '../services/mailTemplates';
 import { consumeToken, createToken, peekToken } from '../services/emailTokens';
 
 const J = (v: string) => JSON.parse(v);
@@ -72,6 +72,7 @@ export function authRoutes(db: DB) {
     if (mailer()) void (async () => {
       try {
         sendMail(verifyMail(b.email, b.displayName, `${publicUrl()}/verify-email?token=${await createToken(db, id, 'verify', { email: b.email })}`), 'verification');
+        if (privileged) sendMail(pendingMail(b.email, b.displayName), 'pending notice');
         if (b.role === 'student' && b.under13 && b.guardianEmail) sendMail(guardianMail(b.guardianEmail, b.guardianName ?? 'Parent / Guardian', b.displayName, `${publicUrl()}/guardian-approval?token=${await createToken(db, id, 'guardian', { email: b.guardianEmail, name: b.guardianName ?? '' })}`), 'guardian approval');
       } catch (e: any) { console.warn(`[mail] could not prepare sign-up emails: ${String(e?.message ?? e).slice(0, 100)}`); }
     })();

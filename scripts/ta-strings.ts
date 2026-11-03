@@ -6,7 +6,7 @@ import path from 'node:path';
 import { translate } from '../src/i18n/translate';
 
 const root = path.resolve(import.meta.dirname, '..');
-const DEFAULT = ['src/pages/student.tsx', 'src/pages/tutor.tsx', 'src/pages/voice.tsx', 'src/pages/material.tsx', 'src/pages/tests.tsx', 'src/pages/certs.tsx', 'src/pages/books.tsx', 'src/pages/public.tsx', 'src/pages/signup.tsx', 'src/pages/account.tsx', 'src/pages/profile.tsx', 'src/pages/parent.tsx', 'src/App.tsx', 'src/components'];
+const DEFAULT = ['src/pages/student.tsx', 'src/pages/tutor.tsx', 'src/pages/voice.tsx', 'src/pages/material.tsx', 'src/pages/tests.tsx', 'src/pages/certs.tsx', 'src/pages/books.tsx', 'src/pages/public.tsx', 'src/pages/signup.tsx', 'src/pages/account.tsx', 'src/pages/extras.tsx', 'src/pages/profile.tsx', 'src/pages/parent.tsx', 'src/App.tsx', 'src/components'];
 const args = process.argv.slice(2).filter(a => !a.startsWith('--'));
 const files: string[] = [];
 const add = (p: string) => { const f = path.resolve(root, p); if (!fs.existsSync(f)) return; if (fs.statSync(f).isDirectory()) fs.readdirSync(f).forEach(n => add(path.join(p, n))); else if (/\.tsx?$/.test(f) && !/i18n/.test(f)) files.push(f); };
