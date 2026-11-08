@@ -19,6 +19,14 @@ services:
       retainFilesOnExit: "true"
     volumes: [s3data:/s3mockroot]
 
+  # Free local AI. Optional: start with  docker compose --profile ai up -d   then   docker compose exec ollama ollama pull qwen3:4b
+  ollama:
+    image: ollama/ollama:latest
+    profiles: ["ai"]
+    volumes: [ollamadata:/root/.ollama]
+    healthcheck: { test: ["CMD", "ollama", "list"], interval: 10s, timeout: 5s, retries: 10 }
+    # GPU is optional. To use an NVIDIA GPU add:  deploy: { resources: { reservations: { devices: [{ capabilities: [gpu] }] } } }
+
   app:
     build: .
     depends_on:
@@ -40,4 +48,4 @@ services:
       S3_SECRET_ACCESS_KEY: local
     ports: ["3001:3001"]
 
-volumes: { dbdata: {}, s3data: {} }
+volumes: { dbdata: {}, s3data: {}, ollamadata: {} }

@@ -100,8 +100,59 @@ export function openaiClient(o: { apiKey?: string; model: string; baseUrl: strin
     },
   };
 }
+/** Qwen3 and DeepSeek-R1 "think" before answering; we turn that off (slow, and the reasoning must never reach a student). Other models reject the field. */
+const thinks = (model: string) => /qwen3|deepseek-r1/i.test(model);
+const stripThink = (s: string) => s.replace(/<think>[\s\S]*?<\/think>/gi, '').replace(/^\s*<think>[\s\S]*$/i, '').trim();
+/** Lets at most `n` model calls run at once; the rest wait their turn (a 4B model on a plain server can only do one at a time). */
+class Gate1 { private busy = 0; private q: (() => void)[] = []; constructor(private n: number) {}
+  async run<T>(signal: AbortSignal, fn: () => Promise<T>): Promise<T> {
+    if (this.busy >= this.n) await new Promise<void>((res, rej) => { const go = () => { signal.removeEventListener('abort', ab); res(); }; const ab = () => { this.q = this.q.filter(x => x !== go); rej(new Error('LLM request cancelled while waiting')); }; this.q.push(go); signal.addEventListener('abort', ab, { once: true }); });
+    this.busy++; try { return await fn(); } finally { this.busy--; this.q.shift()?.(); }
+  }
+  async *runStream<T>(signal: AbortSignal, fn: () => AsyncGenerator<T>): AsyncGenerator<T> {
+    if (this.busy >= this.n) await new Promise<void>((res, rej) => { const go = () => { signal.removeEventListener('abort', ab); res(); }; const ab = () => { this.q = this.q.filter(x => x !== go); rej(new Error('LLM request cancelled while waiting')); }; this.q.push(go); signal.addEventListener('abort', ab, { once: true }); });
+    this.busy++; try { yield* fn(); } finally { this.busy--; this.q.shift()?.(); }
+  }
+}
+/** A model served by Ollama on our own machine (native /api/chat). No key, nothing leaves the server. */
+export function ollamaClient(o: { baseUrl: string; model: string; keepAlive?: string; concurrency?: number; temperature?: number }): LlmClient {
+  const base = o.baseUrl.replace(/\/+$/, ''); const gate = new Gate1(Math.max(1, o.concurrency ?? 1)); const name = `ollama:${o.model}`;
+  const body = (system: string, user: string, maxTokens: number, stream: boolean) => ({ model: o.model, stream, ...(thinks(o.model) ? { think: false } : {}), ...(o.keepAlive ? { keep_alive: o.keepAlive } : {}), options: { num_predict: maxTokens, temperature: o.temperature ?? 0.3 }, messages: [{ role: 'system', content: system }, { role: 'user', content: user }] });
+  const post = async (b: unknown, signal: AbortSignal) => { const r = await fetch(`${base}/api/chat`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(b), signal }); if (!r.ok) throw new Error(`Ollama returned ${r.status}`); return r; };
+  return {
+    name,
+    complete: ({ system, user, maxTokens, signal }) => gate.run(signal, async () => {
+      const d: any = await (await post(body(system, user, maxTokens, false), signal)).json(); report(name, d.prompt_eval_count, d.eval_count);
+      return stripThink(String(d.message?.content ?? ''));
+    }),
+    stream: ({ system, user, maxTokens, signal }) => gate.runStream(signal, async function* () {
+      const r = await post(body(system, user, maxTokens, true), signal); if (!r.body) throw new Error('Ollama sent no body');
+      const dec = new TextDecoder(); let buf = '', inThink = false, pend = '';
+      const emit = (t: string) => { pend += t; let out = ''; for (;;) { if (inThink) { const i = pend.indexOf('</think>'); if (i < 0) { pend = ''; break; } pend = pend.slice(i + 8); inThink = false; continue; } const i = pend.indexOf('<think>'); if (i >= 0) { out += pend.slice(0, i); pend = pend.slice(i + 7); inThink = true; continue; } const keep = pend.lastIndexOf('<'); if (keep >= 0 && '<think>'.startsWith(pend.slice(keep))) { out += pend.slice(0, keep); pend = pend.slice(keep); } else { out += pend; pend = ''; } break; } return out; };
+      for await (const part of r.body as any as AsyncIterable<Uint8Array>) {
+        buf += dec.decode(part, { stream: true }); let i: number;
+        while ((i = buf.indexOf('\n')) >= 0) { const line = buf.slice(0, i).trim(); buf = buf.slice(i + 1); if (!line) continue; let j: any; try { j = JSON.parse(line); } catch { continue; }
+          if (j.error) throw new Error(`Ollama: ${String(j.error).slice(0, 120)}`);
+          const t = j.message?.content; if (t) { const o2 = emit(String(t)); if (o2) yield o2; }
+          if (j.done) { report(name, j.prompt_eval_count, j.eval_count); return; } }
+      }
+    }),
+  };
+}
+export type OllamaHealth = { up: boolean; model: string; modelAvailable: boolean; models: string[]; error?: string };
+/** Is Ollama reachable, and is the chosen model pulled? Never throws. */
+export async function ollamaHealth(env = process.env, f: typeof fetch = fetch): Promise<OllamaHealth> {
+  const base = (env.OLLAMA_BASE_URL ?? 'http://localhost:11434').replace(/\/+$/, ''); const model = env.OLLAMA_MODEL ?? 'qwen3:4b';
+  try { const r = await f(`${base}/api/tags`, { signal: AbortSignal.timeout(3000) }); if (!r.ok) return { up: false, model, modelAvailable: false, models: [], error: `status ${r.status}` };
+    const d: any = await r.json(); const models: string[] = (d.models ?? []).map((m: any) => String(m.name)); const has = models.some(n => n === model || n === `${model}:latest` || n.split(':')[0] === model);
+    return { up: true, model, modelAvailable: has, models }; } catch (e: any) { return { up: false, model, modelAvailable: false, models: [], error: String(e?.message ?? e).slice(0, 100) }; }
+}
+/** Local-only guard: with LOCAL_ONLY=1 no hosted AI provider (Anthropic, OpenAI, Gemini…) can be used, whatever else is set. */
+export const localOnly = (env = process.env) => /^(1|true|yes)$/i.test(env.LOCAL_ONLY ?? '');
 export function llmClientFromEnv(env = process.env): LlmClient | null {
-  const p = (env.LLM_PROVIDER ?? (env.ANTHROPIC_API_KEY ? 'anthropic' : env.LLM_BASE_URL ? 'openai' : '')).toLowerCase();
+  const p = (env.LLM_PROVIDER ?? (localOnly(env) ? 'ollama' : env.ANTHROPIC_API_KEY ? 'anthropic' : env.LLM_BASE_URL ? 'openai' : '')).toLowerCase();
+  if (p === 'ollama') return ollamaClient({ baseUrl: env.OLLAMA_BASE_URL ?? 'http://localhost:11434', model: env.OLLAMA_MODEL ?? 'qwen3:4b', keepAlive: env.OLLAMA_KEEP_ALIVE, concurrency: Number(env.OLLAMA_CONCURRENCY) || 1, temperature: env.OLLAMA_TEMPERATURE ? Number(env.OLLAMA_TEMPERATURE) : undefined });
+  if (localOnly(env)) return null; // LOCAL_ONLY: never fall through to a hosted provider
   if (p === 'anthropic' && env.ANTHROPIC_API_KEY) return anthropicClient({ apiKey: env.ANTHROPIC_API_KEY, model: env.LLM_MODEL ?? env.ANTHROPIC_MODEL ?? 'claude-sonnet-5-5', baseUrl: env.ANTHROPIC_BASE_URL });
   if (p === 'openai' && env.LLM_BASE_URL) return openaiClient({ apiKey: env.LLM_API_KEY, model: env.LLM_MODEL ?? 'gpt-4o-mini', baseUrl: env.LLM_BASE_URL });
   return null;
