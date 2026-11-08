@@ -3,7 +3,7 @@
 A Samacheer Kalvi teacher that runs on your own machine: Ollama for the model, your uploaded class textbooks as the only source of facts. No paid API is needed.
 
 ## What a student gets
-- **Six modes:** Learn, Doubt, Homework, Exam prep, Revision, Voice. Language: தமிழ், English, or both.
+- **Six modes:** Learn, Doubt, Homework, Exam prep, Revision, Voice. Language: தமிழ், English, or both. In the Voice mode only there is also Tanglish (Tamil written in English letters; spoken with the English voice).
 - **Learn mode** teaches one idea as hook → concept → picture → example → key points → one check question. A right answer earns one harder mastery question, then a summary. A wrong answer is re-taught in a simpler way with a different example; after three misses the book's own text is shown and the topic is marked for practice. A question asked during a check is treated as a doubt, not a wrong answer.
 - **Page citations.** Every reply lists the book pages it used, linked to the book viewer. If the books do not contain the answer the teacher says so and does not call the model. It never invents pages.
 - **Level adaptation.** Beginner / developing / intermediate / advanced is worked out from the student's own quiz and check answers (smoothed accuracy; fewer than two answers is always "beginner"). Mastery needs the last three answers right and a score of at least 80%.

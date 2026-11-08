@@ -1,6 +1,6 @@
 import type { Level } from './mastery';
 
-export type TLang = 'ta' | 'en' | 'both';
+export type TLang = 'ta' | 'en' | 'both' | 'tanglish';
 export type TMode = 'learn' | 'doubt' | 'homework' | 'exam' | 'revision' | 'voice';
 export const TMODES: TMode[] = ['learn', 'doubt', 'homework', 'exam', 'revision', 'voice'];
 export type PSrc = { id: number; label: string; text: string };
@@ -15,6 +15,7 @@ export const sourcesBlock = (srcs: PSrc[]) => srcs.map(s => `[${s.id}] ${s.label
 const LANG: Record<TLang, string> = {
   ta: 'Write in clear, simple Tamil (தமிழ்). Put the English term in brackets after a technical word, for example ஒளிச்சேர்க்கை (photosynthesis).',
   en: 'Write in simple, short English that a school student can follow. Explain any difficult word.',
+  tanglish: 'Write in Tanglish: Tamil spoken in everyday style but written ONLY in English letters, mixing simple English words the way students talk, for example "Photosynthesis na plants sooriya oli use panni unavu thayaar panra process." Do NOT use Tamil script. Keep sentences short. Keep technical terms in English.',
   both: 'Write BOTH languages. First explain in Tamil. Then explain the same idea in simple English. Show important terms in both languages, as தமிழ் (English). Give the Tamil meaning of difficult English words.',
 };
 const LEVEL: Record<Level, string> = {
@@ -83,4 +84,5 @@ export const T = {
   noSource: { ta: 'இந்த கேள்விக்கான பதில் உங்கள் பாடப்புத்தகத்தில் எனக்குக் கிடைக்கவில்லை, அதனால் நான் ஊகிக்க மாட்டேன். வேறு விதமாகக் கேளுங்கள் அல்லது உங்கள் ஆசிரியரிடம் கேளுங்கள்.', en: 'I could not find this in your textbook, so I will not guess. Try asking in different words, or ask your teacher.' },
   noModel: { ta: 'AI மாதிரி இப்போது இயங்கவில்லை. உங்கள் புத்தகத்தில் உள்ள பகுதிகளை அப்படியே காட்டுகிறேன்:', en: 'The AI model is not running right now. Here is what your textbook says:' },
 };
-export const bothOrOne = (l: TLang, ta: string, en: string) => (l === 'ta' ? ta : l === 'en' ? en : `${ta}\n\n${en}`);
+export const bothOrOne = (l: TLang, ta: string, en: string, tl?: string) => (l === 'ta' ? ta : l === 'en' ? en : l === 'tanglish' ? (tl ?? en) : `${ta}\n\n${en}`);
+export const TANGLISH = { noSource: 'Intha kelvikku pathil unga puthagathula enakku kidaikala, athanala naan oohikka maatten. Vera maathiri kelunga, illa unga aasiriyar kitta kelunga.', noModel: 'AI model ippo run aagala. Unga puthagathula irukkura text-a apdiye kaattren:' };

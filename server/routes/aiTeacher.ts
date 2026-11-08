@@ -14,6 +14,7 @@ import { Conv, Deps, QuizQ, cleanInput, initialState, makeQuiz, markQuiz, runTur
 import { levelFor, logEvent, progressSummary, recordAnswer, topicKey } from '../services/mastery';
 
 const LANGS = ['ta', 'en', 'both'] as const;
+const CHAT_LANGS = ['ta', 'en', 'both', 'tanglish'] as const;
 const MSG = z.string().min(1).max(1500);
 
 /**
@@ -41,9 +42,9 @@ export function aiTeacherRoutes(db: DB, opts: { llm?: LlmClient | null; timeoutM
     await q.run(db, 'INSERT INTO teacher_conversations(id,student_id,title,mode,lang,class_level,subject_id,lesson_id,state,created_at,updated_at) VALUES (?,?,?,?,?,?,?,?,?,?,?)', id, studentId, b.title.slice(0, 80), b.mode, b.lang, p.class_level, b.subjectId ?? null, null, JSON.stringify(initialState()), now, now);
     return { id, student_id: studentId, mode: b.mode, lang: b.lang, class_level: p.class_level, subject_id: b.subjectId ?? null, state: initialState() };
   };
-  const chatBody = z.object({ conversationId: z.string().max(60).optional(), message: MSG, mode: z.enum(TMODES as [TMode, ...TMode[]]).default('learn'), lang: z.enum(LANGS).default('both'), subjectId: z.string().max(40).nullish() });
+  const chatBody = z.object({ conversationId: z.string().max(60).optional(), message: MSG, mode: z.enum(TMODES as [TMode, ...TMode[]]).default('learn'), lang: z.enum(CHAT_LANGS).default('both'), subjectId: z.string().max(40).nullish() });
   const resolve = async (req: Request) => {
-    const b = parse(chatBody, req.body); const p = await guardian(req.user!.id); const text = cleanInput(b.message); if (!text) throw new HttpError(400, 'message: please type something.');
+    const b = parse(chatBody, req.body); if (b.lang === 'tanglish' && b.mode !== 'voice') throw new HttpError(400, 'lang: Tanglish is only for the voice teacher.'); const p = await guardian(req.user!.id); const text = cleanInput(b.message); if (!text) throw new HttpError(400, 'message: please type something.');
     let c: Conv;
     if (b.conversationId) { c = await load(b.conversationId, req.user!.id); c.mode = b.mode; c.lang = b.lang; await q.run(db, 'UPDATE teacher_conversations SET mode=?, lang=? WHERE id=?', b.mode, b.lang, c.id); }
     else c = await open(req.user!.id, p, { mode: b.mode, lang: b.lang, subjectId: b.subjectId, title: text });
@@ -57,7 +58,7 @@ export function aiTeacherRoutes(db: DB, opts: { llm?: LlmClient | null; timeoutM
     const model = provider === 'ollama' || !llm ? await ollamaHealth().catch(e => ({ up: false, error: String(e?.message ?? e), model: '', modelAvailable: false, models: [] as string[] })) : null;
     res.json({ ok: true, model: { provider: llm?.name ?? null, configured: !!llm, ...(model ?? { up: !!llm }) }, stt: { enabled: !!opts.stt, provider: opts.stt?.name ?? null }, tts: { enabled: !!opts.tts, provider: opts.tts?.name ?? null }, fallback: 'Without the model the teacher shows the textbook text itself; it never invents an answer.' });
   }));
-  r.get('/config', wrap(async (_req, res) => res.json({ modes: TMODES, langs: LANGS, model: { enabled: !!llm, name: llm?.name ?? null }, stt: !!opts.stt, tts: !!opts.tts, maxMessage: 1500 })));
+  r.get('/config', wrap(async (_req, res) => res.json({ modes: TMODES, langs: LANGS, voiceLangs: CHAT_LANGS, model: { enabled: !!llm, name: llm?.name ?? null }, stt: !!opts.stt, tts: !!opts.tts, maxMessage: 1500 })));
 
   r.get('/conversations', S, wrap(async (req, res) => res.json({ conversations: await q.all(db, 'SELECT id,title,mode,lang,subject_id,updated_at FROM teacher_conversations WHERE student_id=? ORDER BY updated_at DESC LIMIT 50', req.user!.id) })));
   r.get('/conversations/:id', S, wrap(async (req, res) => {

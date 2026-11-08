@@ -4,7 +4,7 @@ import { Badge, Button, Card, PageTitle, Progress } from '../components/ui';
 import { get, getCsrf, msg, post } from '../api';
 import { canListen, canSpeak, recognize, Recognizer } from '../components/speech';
 
-type L = 'ta' | 'en' | 'both'; type M = 'learn' | 'doubt' | 'homework' | 'exam' | 'revision' | 'voice';
+type L = 'ta' | 'en' | 'both' | 'tanglish'; type M = 'learn' | 'doubt' | 'homework' | 'exam' | 'revision' | 'voice';
 type Sec = { tag: string; text: string }; type Ref = { bookId?: string; page?: number; label: string; n: number };
 type Msg = { id: string; role: 'user' | 'ai'; text: string; sections?: Sec[]; refs?: Ref[]; grounded?: boolean; offline?: boolean; verdict?: boolean | null };
 const MODES: [M, string, string][] = [['learn', 'Learn', 'கற்க'], ['doubt', 'Doubt', 'சந்தேகம்'], ['homework', 'Homework', 'வீட்டுப்பாடம்'], ['exam', 'Exam prep', 'தேர்வு'], ['revision', 'Revision', 'திருப்புதல்'], ['voice', 'Voice', 'குரல்']];
@@ -52,7 +52,7 @@ export function AiTeacher() {
 
   async function mic() {
     if (listening) { rec.current?.stop(); return; }
-    const sl = lang === 'en' ? 'en' : 'ta';
+    const sl = lang === 'en' || lang === 'tanglish' ? 'en' : 'ta';
     if (cfg.stt && typeof MediaRecorder !== 'undefined') { // local Whisper on the server
       try {
         const s = await navigator.mediaDevices.getUserMedia({ audio: true }); const mr = new MediaRecorder(s); const chunks: Blob[] = []; setListening(true);
@@ -74,7 +74,7 @@ export function AiTeacher() {
   async function save(m: Msg) { try { await post('/teacher/saved', { title: (msgs.find(x => x.role === 'user')?.text ?? 'Lesson').slice(0, 80), content: m.text, sources: m.refs ?? [], conversationId: conv }); setErr(''); alert('Saved to your lessons.'); } catch (e) { setErr(msg(e)); } }
   async function startQuiz() {
     const topic = [...msgs].reverse().find(x => x.role === 'user')?.text; if (!topic) { setErr('Ask about a topic first, then take a quiz on it.'); return; }
-    try { setScore(null); setAnswers({}); const q = await post('/teacher/quiz', { topic, count: 5, lang, subjectId: subject || null }); if (!q.questions.length) { setErr(q.message); return; } setQuiz(q); } catch (e) { setErr(msg(e)); }
+    try { setScore(null); setAnswers({}); const q = await post('/teacher/quiz', { topic, count: 5, lang: lang === 'tanglish' ? 'en' : lang, subjectId: subject || null }); if (!q.questions.length) { setErr(q.message); return; } setQuiz(q); } catch (e) { setErr(msg(e)); }
   }
   async function submitQuiz() { try { setScore(await post('/teacher/evaluate', { quizId: quiz.quizId, answers: Object.entries(answers).map(([qid, answer]) => ({ id: qid, answer })) })); loadProg(); } catch (e) { setErr(msg(e)); } }
 
@@ -84,8 +84,8 @@ export function AiTeacher() {
       <PageTitle title="AI Teacher" sub="Your Samacheer Kalvi teacher. Answers come from your class textbooks, with page numbers." right={<Button tone="secondary" onClick={fresh}>New chat</Button>} />
       {health && (down || health.model?.up === false) && <div className="ait-note" role="status">The AI model is not running on this computer. I will show what your textbook says instead. <Link to="/help">Help</Link></div>}
       <div className="ait-bar" role="toolbar" aria-label="Teacher settings">
-        <div className="ait-tabs" role="tablist">{MODES.map(([k, en, ta]) => <button key={k} role="tab" aria-selected={mode === k} className={mode === k ? 'on' : ''} onClick={() => setMode(k)}>{en}<small>{ta}</small></button>)}</div>
-        <select aria-label="Language" value={lang} onChange={e => setLang(e.target.value as L)}><option value="both">தமிழ் + English</option><option value="ta">தமிழ்</option><option value="en">English</option></select>
+        <div className="ait-tabs" role="tablist">{MODES.map(([k, en, ta]) => <button key={k} role="tab" aria-selected={mode === k} className={mode === k ? 'on' : ''} onClick={() => { setMode(k); if (k !== 'voice' && lang === 'tanglish') setLang('both'); }}>{en}<small>{ta}</small></button>)}</div>
+        <select aria-label="Language" value={lang} onChange={e => setLang(e.target.value as L)}><option value="both">தமிழ் + English</option><option value="ta">தமிழ்</option><option value="en">English</option>{mode === 'voice' && <option value="tanglish">Tanglish (voice only)</option>}</select>
         <select aria-label="Subject" value={subject} onChange={e => setSubject(e.target.value)}>{SUBJ.map(([v, t]) => <option key={v} value={v}>{t}</option>)}</select>
       </div>
       <div className="ait-grid">

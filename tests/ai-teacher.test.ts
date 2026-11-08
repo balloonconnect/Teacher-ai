@@ -179,3 +179,13 @@ describe('voice routes', () => {
     const r = await c.post('/api/teacher/voice/speak', { text: 'hello', lang: 'en' }); expect(r.status).toBe(200); expect(r.headers['content-type']).toBe('audio/wav');
   });
 });
+
+describe('Tanglish (voice only)', () => {
+  it('is accepted only in voice mode, and tells the model to avoid Tamil script', async () => {
+    const llm = fake(); const t = await boot(llm);
+    const bad = await t.c.post('/api/teacher/chat', { message: 'What is photosynthesis?', mode: 'doubt', lang: 'tanglish', subjectId: t.sub }); expect(bad.status).toBe(400);
+    const ok = await t.c.post('/api/teacher/chat', { message: 'What is photosynthesis?', mode: 'voice', lang: 'tanglish', subjectId: t.sub }); expect(ok.status).toBe(200);
+    expect(llm.calls.at(-1)!.system).toMatch(/Tanglish/); expect(llm.calls.at(-1)!.system).toMatch(/Do NOT use Tamil script/); expect(llm.calls.at(-1)!.system).toMatch(/MODE: VOICE/);
+    const none = await t.c.post('/api/teacher/chat', { message: 'zzzz qqqq xxxx', mode: 'voice', lang: 'tanglish', subjectId: t.sub }); expect(none.body.reply).toMatch(/puthagathula/);
+  });
+});
