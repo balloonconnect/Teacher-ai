@@ -26,10 +26,5 @@ node scripts/ollama-bench.mjs
 ```
 Read the Tamil answer from the benchmark yourself (or ask a Tamil teacher). Do not choose `qwen3:4b` or `gemma3:4b` for live use until you have compared them on your own lessons. Do not rely on a promise of how many students can use it at once; measure it with the benchmark first.
 
-## Next phases (not built yet)
-2. Teaching flow: hook → concept → example → key points → check → reteach → mastery → summary, and the six modes (Learn, Doubt, Homework, Exam preparation, Revision, Voice).
-3. `/api/teacher/chat`, `/stream`, `/quiz`, `/evaluate`, `/reteach`, `/revision`, `/api/student/progress`, `/learning-history`, with validation, per-student access, rate limits.
-4. Student understanding engine and mastery tables (migrations).
-5. Voice: Whisper-class speech-to-text and a local Tamil voice, with the browser voice as the fallback.
-6. Optional embeddings for textbook search (pgvector) behind a switch.
-7. Chat screen changes from the Figma design.
+## Phases 2–7
+Phases 2–5 and the chat screen (7) are built: see [AI_TEACHER.md](AI_TEACHER.md). Phase 6 (embeddings) is **not built**; search uses the existing keyword ranking over the uploaded textbook pages, and AI_TEACHER.md says how to add vectors later.

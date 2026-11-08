@@ -10,7 +10,7 @@ import { myProfile } from './student';
 import { SttError, sttAllowed, sttMime } from '../services/stt';
 import { TtsError } from '../services/tts';
 import { TMODES, TLang, TMode, bothOrOne, T } from '../services/teacherPrompt';
-import { Conv, Deps, QuizQ, cleanInput, initialState, makeQuiz, markQuiz, retrieve, runTurn, saveTurn, history } from '../services/teacherFlow';
+import { Conv, Deps, QuizQ, cleanInput, initialState, makeQuiz, markQuiz, runTurn, saveTurn, history } from '../services/teacherFlow';
 import { levelFor, logEvent, progressSummary, recordAnswer, topicKey } from '../services/mastery';
 
 const LANGS = ['ta', 'en', 'both'] as const;
@@ -111,7 +111,7 @@ export function aiTeacherRoutes(db: DB, opts: { llm?: LlmClient | null; timeoutM
     const out = await makeQuiz(deps(), { classLevel: p.class_level, subjectId: b.subjectId ?? null, topic: cleanInput(b.topic), count: b.count, lang: b.lang, signal: ac.signal });
     if (!out.questions.length) return void res.json({ quizId: null, questions: [], message: bothOrOne(b.lang, T.noSource.ta, T.noSource.en), offline: out.offline });
     const quizId = uid(); await q.run(db, 'INSERT OR REPLACE INTO settings(key,value) VALUES (?,?)', `quiz:${req.user!.id}:${quizId}`, JSON.stringify({ topic: b.topic, subjectId: b.subjectId ?? null, classLevel: p.class_level, questions: out.questions, at: iso() }));
-    res.json({ quizId, topic: b.topic, offline: out.offline, sources: out.refs, questions: out.questions.map(({ answer, ...x }) => x) });
+    res.json({ quizId, topic: b.topic, offline: out.offline, sources: out.refs, questions: out.questions.map(x => { const { answer: _a, ...rest } = x; return rest; }) });
   }));
 
   r.post('/evaluate', S, limit, wrap(async (req, res) => {

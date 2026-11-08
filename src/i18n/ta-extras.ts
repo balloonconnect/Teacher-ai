@@ -1,5 +1,6 @@
 /** Tamil for the Figma gap screens (notifications, settings, weekly reports, messages) and their server messages. Needs a Tamil teacher's review like the other dictionaries. */
 export const EXTRAS: Record<string, string> = {
+  'AI Teacher': 'புத்தக AI ஆசிரியர்',
   'Choose Tamil, English or both for menus and help text.': 'பட்டியல்கள் மற்றும் உதவி உரைக்குத் தமிழ், ஆங்கிலம் அல்லது இரண்டையும் தேர்ந்தெடுங்கள்.',
   'Choose a person to see your conversation.': 'உரையாடலைப் பார்க்க ஒருவரைத் தேர்ந்தெடுங்கள்.',
   'Email me this report': 'இந்த அறிக்கையை எனக்கு மின்னஞ்சலில் அனுப்பு',

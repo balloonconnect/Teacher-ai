@@ -14,6 +14,7 @@ import { Certificates, Verify } from './pages/certs';
 import { Tutor } from './pages/tutor';
 import { ClassBooks, BookViewer, BookAdmin } from './pages/books';
 import { VoiceTutor } from './pages/voice';
+import { AiTeacher } from './pages/aiTeacher';
 import { ParentHome, ParentChild, ParentAccount } from './pages/parent';
 import { AccountPage, Messages, NotificationsPage, ParentReports } from './pages/extras';
 import { TeacherHome, Classes, ClassDetail, Questions, TeacherTests, TestBuilder, TestResults, Reviews, ReviewAttempt, CertAdmin, LessonReview } from './pages/teacher';
@@ -33,7 +34,7 @@ export default function App() {
       <Route path="/app" element={S(ALL, <Dashboard />)} />
       <Route path="/app/tutor" element={S(['student'], <Tutor />)} />
       <Route path="/app/learn" element={S(['student'], <Learn />)} /><Route path="/app/learn/:id" element={S(['student', 'teacher', 'school_admin', 'admin'], <Lesson />)} /><Route path="/teacher/lessons" element={S(['teacher', 'school_admin', 'admin'], <LessonReview />)} />
-      <Route path="/app/voice" element={S(['student'], <VoiceTutor />)} /><Route path="/app/material" element={<Navigate to="/app/tutor?tab=material" replace />} /><Route path="/app/practice" element={S(['student'], <Practice />)} /><Route path="/app/books" element={S(['student'], <ClassBooks />)} /><Route path="/app/textbook/:id" element={S(['student'], <BookViewer />)} /><Route path="/teacher/books" element={S(['teacher'], <BookAdmin />)} /><Route path="/admin/people" element={S(['admin'], <People />)} /><Route path="/admin/ai" element={S(['admin'], <AiUsage />)} /><Route path="/admin/books" element={S(['admin'], <BookAdmin canEdit />)} />
+      <Route path="/app/teacher" element={S(['student'], <AiTeacher />)} /><Route path="/app/voice" element={S(['student'], <VoiceTutor />)} /><Route path="/app/material" element={<Navigate to="/app/tutor?tab=material" replace />} /><Route path="/app/practice" element={S(['student'], <Practice />)} /><Route path="/app/books" element={S(['student'], <ClassBooks />)} /><Route path="/app/textbook/:id" element={S(['student'], <BookViewer />)} /><Route path="/teacher/books" element={S(['teacher'], <BookAdmin />)} /><Route path="/admin/people" element={S(['admin'], <People />)} /><Route path="/admin/ai" element={S(['admin'], <AiUsage />)} /><Route path="/admin/books" element={S(['admin'], <BookAdmin canEdit />)} />
       <Route path="/app/tests" element={S(['student'], <TestsList />)} /><Route path="/app/tests/:id" element={S(['student'], <TestDetail />)} />
       <Route path="/app/take/:id" element={S(['student'], <TakeTest />)} /><Route path="/app/result/:id" element={S(['student'], <Result />)} /><Route path="/app/review/:id" element={S(['student'], <Review />)} />
       <Route path="/app/progress" element={S(['student'], <Progress_ />)} /><Route path="/app/certificates" element={S(['student'], <Certificates />)} />

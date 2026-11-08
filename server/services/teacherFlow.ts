@@ -112,9 +112,9 @@ export async function runTurn(d: Deps, c: Conv, input: string, signal?: AbortSig
   // 2) A new question or topic: retrieve from the uploaded textbooks and teach / answer.
   const topic = (st.phase !== 'idle' && asDoubt && st.topic) ? st.topic : text.slice(0, 100);
   const { src, refs } = await retrieve(d.db, c, `${asDoubt && st.topic ? st.topic + ' ' : ''}${text}`);
-  await logEvent(d.db, c.student_id, c.mode === 'learn' && !asDoubt ? 'concept' : 'question', { topicKey: topicKey(c.subject_id, topic), conversationId: c.id, detail: { mode } });
   if (!src.length) return finish(c, st, [{ tag: 'text', text: bothOrOne(c.lang, T.noSource.ta, T.noSource.en) }], [], false, false, level, topic);
   const learnNew = c.mode === 'learn' && !asDoubt;
+  await logEvent(d.db, c.student_id, c.mode === 'learn' && !asDoubt ? 'concept' : 'question', { topicKey: topicKey(c.subject_id, topic), conversationId: c.id, detail: { mode } });
   const fmt = learnNew ? LEARN_FORMAT : undefined;
   let secs: { tag: string; text: string }[]; let offline = false;
   try { secs = parseSections(await say(d, cc, level, src, text, fmt ?? '', hist, signal)); } catch (e: any) { if (signal?.aborted) throw e; offline = true; secs = [{ tag: 'text', text: extractive(src, c.lang) }]; }

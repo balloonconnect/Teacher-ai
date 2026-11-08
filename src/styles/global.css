@@ -304,3 +304,29 @@ input[aria-invalid=true]{border-color:var(--danger)}
   .menutop{display:inline-flex}
   .content{padding-bottom:84px}
 }
+
+/* AI Teacher chat: desktop two-column, tablet stacked, mobile single column with a sticky composer */
+.ait-note{background:var(--warning-soft);color:var(--warning);border-radius:var(--r-md);padding:10px 14px;margin-bottom:12px}
+.ait-bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:12px}
+.ait-bar select{min-height:44px;border:1px solid var(--border);border-radius:var(--r-sm);padding:0 10px;background:var(--surface);color:var(--text)}
+.ait-tabs{display:flex;gap:6px;overflow-x:auto;flex:1;padding-bottom:2px}
+.ait-tabs button{display:flex;flex-direction:column;align-items:center;min-width:76px;min-height:44px;border:1px solid var(--border);background:var(--surface);color:var(--text);border-radius:var(--r-sm);padding:4px 10px;cursor:pointer;font-weight:600}
+.ait-tabs button small{font:400 11px var(--font-ta);color:var(--text-muted)}
+.ait-tabs button.on{background:var(--primary);color:var(--on-primary);border-color:var(--primary)}.ait-tabs button.on small{color:var(--on-primary)}
+.ait-grid{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:16px;align-items:start}
+.ait-chat{display:flex;flex-direction:column;min-height:480px;padding:0}
+.ait-msgs{flex:1;overflow-y:auto;max-height:62vh;padding:16px;display:flex;flex-direction:column;gap:12px}
+.ait-empty{text-align:center;color:var(--text-muted);padding:40px 12px}
+.ait-m{max-width:92%;border-radius:var(--r-lg);padding:10px 14px;line-height:1.55;font-family:var(--font-ta)}
+.ait-m p{margin:0;white-space:pre-wrap}.ait-m.user{align-self:flex-end;background:var(--primary);color:var(--on-primary)}
+.ait-m.ai{align-self:flex-start;background:var(--surface-alt)}
+.ait-sec{margin:0 0 10px}.ait-sec h4{margin:0 0 2px;font:700 13px var(--font);color:var(--primary)}.ait-sec.check{background:var(--accent-soft);border-radius:var(--r-md);padding:8px 10px}
+.ait-act{display:flex;gap:8px;margin-top:6px}.ait-act button{min-height:36px;border:0;background:transparent;color:var(--primary);cursor:pointer;font-weight:600}
+.ait-in{display:flex;gap:8px;align-items:flex-end;padding:12px;border-top:1px solid var(--border);position:sticky;bottom:0;background:var(--surface);border-radius:0 0 var(--r-lg) var(--r-lg)}
+.ait-in textarea{flex:1;min-height:48px;resize:none;border:1px solid var(--border);border-radius:var(--r-md);padding:10px;font:inherit;background:var(--surface);color:var(--text)}
+.ait-mic{width:48px;height:48px;border-radius:50%;border:1px solid var(--border);background:var(--surface);font-size:20px;cursor:pointer}.ait-mic.on{background:var(--danger-soft);border-color:var(--danger)}
+.ait-err{margin:0 12px;color:var(--danger);font-size:14px}
+.ait-side{display:flex;flex-direction:column;gap:16px}.ait-side fieldset{border:0;padding:0;margin:0 0 10px}.ait-side legend{font-weight:600;margin-bottom:4px}.ait-side input:not([type=radio]){width:100%;min-height:40px;border:1px solid var(--border);border-radius:var(--r-sm);padding:0 8px}
+.ait-opt{display:flex;gap:8px;align-items:center;min-height:36px}
+@media(max-width:900px){.ait-grid{grid-template-columns:1fr}.ait-msgs{max-height:55vh}}
+@media(max-width:640px){.ait-tabs{flex:1 1 100%}.ait-bar select{flex:1}.ait-m{max-width:100%}.ait-chat{min-height:420px}.ait-in{bottom:64px}}
