@@ -29,4 +29,18 @@ export const MIGRATIONS: Migration[] = [
   // Messages between a parent and a teacher who teaches one of the parent's linked children (Figma PAR-05 Messages).
   { version: 6, name: 'parent_teacher_messages', sql: `CREATE TABLE parent_teacher_messages (id TEXT PRIMARY KEY, from_id TEXT NOT NULL, to_id TEXT NOT NULL, body TEXT NOT NULL, created_at TEXT NOT NULL, read_at TEXT);
     CREATE INDEX parent_teacher_messages_pair ON parent_teacher_messages (from_id, to_id, created_at)` },
+  // AI teacher (docs/LOCAL_AI.md): its own conversations, what each student has shown they understand, weak topics, quiz answers and saved lessons.
+  // Every row belongs to one student_id and is only ever read back for that student (or a parent/teacher the existing access rules allow).
+  { version: 7, name: 'ai_teacher', sql: `CREATE TABLE teacher_conversations (id TEXT PRIMARY KEY, student_id TEXT NOT NULL, title TEXT NOT NULL, mode TEXT NOT NULL, lang TEXT NOT NULL, class_level INTEGER, subject_id TEXT, lesson_id TEXT, state TEXT NOT NULL DEFAULT '{}', created_at TEXT NOT NULL, updated_at TEXT NOT NULL);
+    CREATE INDEX teacher_conversations_student ON teacher_conversations (student_id, updated_at);
+    CREATE TABLE conversation_messages (id TEXT PRIMARY KEY, conversation_id TEXT NOT NULL, role TEXT NOT NULL, content TEXT NOT NULL, meta TEXT NOT NULL DEFAULT '{}', created_at TEXT NOT NULL);
+    CREATE INDEX conversation_messages_conv ON conversation_messages (conversation_id, created_at);
+    CREATE TABLE student_topic_mastery (student_id TEXT NOT NULL, topic_key TEXT NOT NULL, topic TEXT NOT NULL, subject_id TEXT, class_level INTEGER, attempts INTEGER NOT NULL DEFAULT 0, correct INTEGER NOT NULL DEFAULT 0, wrong INTEGER NOT NULL DEFAULT 0, retries INTEGER NOT NULL DEFAULT 0, score REAL NOT NULL DEFAULT 0, level TEXT NOT NULL DEFAULT 'beginner', mastered INTEGER NOT NULL DEFAULT 0, recent TEXT NOT NULL DEFAULT '[]', updated_at TEXT NOT NULL, PRIMARY KEY (student_id, topic_key));
+    CREATE TABLE student_learning_progress (id TEXT PRIMARY KEY, student_id TEXT NOT NULL, event TEXT NOT NULL, topic_key TEXT, conversation_id TEXT, detail TEXT NOT NULL DEFAULT '{}', at TEXT NOT NULL);
+    CREATE INDEX student_learning_progress_student ON student_learning_progress (student_id, at);
+    CREATE TABLE student_quiz_attempts (id TEXT PRIMARY KEY, student_id TEXT NOT NULL, conversation_id TEXT, quiz_id TEXT, topic_key TEXT, qtype TEXT NOT NULL, question TEXT NOT NULL, answer_given TEXT NOT NULL, correct INTEGER NOT NULL, marks REAL NOT NULL, max_marks REAL NOT NULL, at TEXT NOT NULL);
+    CREATE INDEX student_quiz_attempts_student ON student_quiz_attempts (student_id, at);
+    CREATE TABLE student_weak_topics (student_id TEXT NOT NULL, topic_key TEXT NOT NULL, topic TEXT NOT NULL, subject_id TEXT, since TEXT NOT NULL, last_seen TEXT NOT NULL, wrong_count INTEGER NOT NULL DEFAULT 0, resolved_at TEXT, PRIMARY KEY (student_id, topic_key));
+    CREATE TABLE saved_lessons (id TEXT PRIMARY KEY, student_id TEXT NOT NULL, title TEXT NOT NULL, content TEXT NOT NULL, sources TEXT NOT NULL DEFAULT '[]', conversation_id TEXT, created_at TEXT NOT NULL);
+    CREATE INDEX saved_lessons_student ON saved_lessons (student_id, created_at)` },
 ];

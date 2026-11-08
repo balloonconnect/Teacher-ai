@@ -17,11 +17,13 @@ import { visualRoutes } from './routes/visuals';
 import { voiceRoutes } from './routes/voice';
 import type { TeachEngine } from './services/teach';
 import { teacherRoutes } from './routes/teacher';
+import { sttFromEnv } from './services/stt';
+import { aiTeacherRoutes, studentProgressRoutes } from './routes/aiTeacher';
 import { adminRoutes, parentRoutes, schoolRoutes } from './routes/roles';
 import { messageRoutes } from './routes/messages';
 import { selectProvider, TutorProvider } from './services/tutor';
 
-export function createApp(db: DB, opts: { provider?: TutorProvider; serveStatic?: boolean; voiceEngine?: TeachEngine; voiceMax?: number; voiceQueueMs?: number; voiceVisuals?: any; voiceTts?: any; llm?: any } = {}) {
+export function createApp(db: DB, opts: { provider?: TutorProvider; serveStatic?: boolean; voiceEngine?: TeachEngine; voiceMax?: number; voiceQueueMs?: number; voiceVisuals?: any; voiceTts?: any; llm?: any; teacherLlm?: any; teacherTimeoutMs?: number; stt?: any } = {}) {
   const app = express();
   app.disable('x-powered-by'); app.set('trust proxy', 1);
   app.use((_req, res, next) => {
@@ -43,7 +45,9 @@ export function createApp(db: DB, opts: { provider?: TutorProvider; serveStatic?
   api.use('/visuals', visualRoutes());
   api.use('/materials', materialRoutes(db));
   api.use('/textbooks', textbookRoutes(db));
+  api.use('/teacher', aiTeacherRoutes(db, { llm: opts.teacherLlm, timeoutMs: opts.teacherTimeoutMs, stt: opts.stt === undefined ? sttFromEnv() : opts.stt, tts: opts.voiceTts }));
   api.use('/teacher', teacherRoutes(db));
+  api.use(studentProgressRoutes(db));
   api.use('/parent', parentRoutes(db));
   api.use('/messages', messageRoutes(db));
   api.use('/school', schoolRoutes(db));
